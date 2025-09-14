@@ -1,359 +1,452 @@
-# TEE Edge Platform
+# SPEC.md - フロントエンド技術実装要件
 
-## 課題
+## 概要
 
-### クラウドで動かす場合
+TEE Edge Platform - セキュアなトレーディングボット実行のためのTEE（Trusted Execution Environment）ノードの貸借マーケットプレース。本文書はプラットフォームのフロントエンド技術仕様を定義する。
 
-- 開発者や運営者に秘密鍵や取引戦略を渡す必要があり、情報漏洩や悪用のリスクがある
-- Bot提供者の主張を利用者が検証できず、安全性が不透明
-- 取引API事業者のサーバー近くで環境を確保するのが難しい
-- 常にTEEノードを動かすと高額コストになる
+## 技術スタック
 
-### ローカルで動かす場合
+### コアフレームワーク
 
-- TEE対応ハードウェアを自前で購入する必要がある
-- ネットワークや電源の安定性が保証されず、高可用性を確保しにくい
-- 取引API事業者のサーバーから遠く、レイテンシ面で不利
+- **Next.js 15.5.3** with App Router
+- **React 19.1.0**
+- **TypeScript** strict mode
+- **Tailwind CSS v4**
+- **Biome** リンティング・フォーマット
+- **Turbopack** 高速ビルド
 
-## 解決策: TEE Node市場の構築
+### UIコンポーネント
 
-- 一般ユーザーが保有するTEEノードを貸し出せるプラットフォームを提供
-- 取引Botを動かしたいユーザーは利用料を支払い、適切なノードを選択
-- ノード利用価格は以下で決定
-    - 実行時間
-    - システムの安定稼働実績
-    - 取引API事業者のサーバーとの距離
-    - 実行時間を短縮できる戦略（キャッシュ・スケジューリング等）の有効性
+- **shadcn/ui** メインコンポーネントライブラリ
+- **ダークモード** デフォルトテーマ
+- **レスポンシブデザイン** デスクトップ・モバイル対応
 
-### 利用者のメリット
+### Web3連携
 
-- BotはTEE内で実行され、クラウド運営者にも戦略は不可視
-- API事業者に近いノードを選べるため、取引レイテンシで有利
-- ローカルより安定した環境を利用可能
-- スポット利用（function実行型）により、常時稼働よりコスト削減
+- **wagmi** ウォレット接続・ブロックチェーン操作
+- **viem** Ethereum低レベルライブラリ
+- **RainbowKit** または類似のウォレット接続UI
+- **Base ネットワーク** USDC取引（X402モック実装）
 
-### ノード提供者のメリット
+## ページ構成とルーティング
 
-- TEEノードを貸し出すだけで利益を得られる
-    - リソースの小口販売
-- 稼働実績や立地条件に応じて利用率が上がり、収益化できる
+### パブリックルート
 
-### Bot提供者のメリット
+- **/** - ランディングページ
+- **/nodes** - 利用可能TEEノード一覧
+- **/programs** - プログラムマーケットプレース
+- **/program/[id]** - 個別プログラム詳細
 
-- 余計な常駐コストが必要ない
-- 過剰課金を防げつ
-- Bot戦略もTEE内で実行され、クラウド運営者から不可視
-    - 結果にあてステーションを添付し、Botter自身が約束通りの環境で動いたと検証可能
+### 保護されたルート（ウォレット接続必須）
 
-低遅延×機密性×検証可能性
+- **/dashboard** - ユーザーダッシュボード
+- **/dashboard/nodes** - 自分のノード管理
+- **/dashboard/jobs** - 実行履歴
+- **/dashboard/programs** - 自分のプログラム
+- **/user-program** - プログラム作成・実行
+- **/nodes/new** - 新規TEEノード登録
 
-## プラットフォーム設計
+## コンポーネント設計
 
-### コンセプト
-取引Botの実績とTEE実行の透明性を重視したマーケットプレイス。HyperliquidのVaultやBybitのCopyTradeのようなリッチなUIで、Bot選択からTEEノードでの実行まで、シームレスな体験を提供。
+### レイアウトコンポーネント
 
-### 主要機能
-1. **Bot マーケットプレイス**
-   - Bot一覧表示（パフォーマンス、APR、ROI、実行回数等）
-   - TEEアテステーション結果の表示
-
-2. **TEE Node 選択**
-   - 利用可能なノード一覧
-   - レイテンシ（取引所からの距離）表示
-   - 稼働率・信頼性スコア
-   - 価格（USDC/実行時間）
-
-3. **決済システム**
-   - x402プロトコルによるBase上のUSDC決済
-   - 実行時間ベースの課金
-   - 透明な料金体系
-
-## ユーザーフロー
-
-### Bot実行フロー
-1. **Bot選択**
-   - マーケットプレイスでBotを閲覧
-   - パフォーマンス指標を確認
-   - Bot詳細ページでアテステーション履歴を確認
-
-2. **Node選択**
-   - 推奨ノードの表示（レイテンシ最適化）
-   - ノードの稼働状況確認
-   - 料金見積もり
-
-3. **支払い＆実行**
-   - x402でUSDC支払い
-   - TEEでのBot実行開始
-   - リアルタイム実行状況モニタリング
-
-4. **結果確認**
-   - 実行結果とアテステーション
-   - パフォーマンスレポート
-   - 取引履歴
-
-## 技術アーキテクチャ
-
-### Frontend
-- **Framework**: Next.js 15 (App Router)
-- **UI Library**: Tailwind CSS v4
-- **State Management**: React Context / Zustand
-- **Web3 Integration**: wagmi / viem
-
-### Backend Services
-- **API**: Next.js API Routes (Mock データ用)
-- **Data**: ローカル JSON/TypeScript オブジェクト (ハッカソン用)
-
-### Web3 Components
-- **Payment**: x402 Protocol Integration
-- **Chain**: Base (Ethereum L2)
-- **Token**: USDC
-
-### TEE Integration
-- **Attestation**: Mock API (開発段階)
-- **Node Communication**: WebSocket
-
-## データモデル
-
-### Bot
 ```typescript
-interface Bot {
-  id: string
-  name: string
-  description: string
-  strategy: string
-  createdBy: string
-  performance: {
-    apy: number
-    roi: number
-    winRate: number
-    totalTrades: number
-    profitLoss: number
-  }
-  riskLevel: 'low' | 'medium' | 'high'
-  minInvestment: number
-  attestations: Attestation[]
-}
+// グローバルレイアウト（ウォレット接続付き）
+app/layout.tsx
+├── Header（ウォレット接続、ナビゲーション）
+├── メインコンテンツエリア
+└── Footer
+
+// ダッシュボードレイアウト
+app/dashboard/layout.tsx
+├── サイドバーナビゲーション
+├── メインダッシュボードコンテンツ
+└── ステータスインジケーター
 ```
 
-### TEENode
+### 主要コンポーネント
+
+#### ウォレット連携
+
+```typescript
+// components/wallet/
+├── WalletButton.tsx          // ウォレット接続・切断
+├── WalletStatus.tsx          // 接続アドレス表示
+├── NetworkSelector.tsx       // Baseネットワーク切り替え
+└── BalanceDisplay.tsx        // USDC残高表示
+```
+
+#### TEEノードコンポーネント
+
+```typescript
+// components/nodes/
+├── NodeCard.tsx              // 個別ノード表示
+├── NodeList.tsx              // 利用可能ノードグリッド
+├── NodeRegistration.tsx      // 新規ノード登録フォーム
+├── NodeMetrics.tsx           // パフォーマンス指標表示
+└── AttestationStatus.tsx     // TEEアテステーション検証
+```
+
+#### プログラムコンポーネント
+
+```typescript
+// components/programs/
+├── ProgramCard.tsx           // プログラムマーケットアイテム
+├── ProgramDetails.tsx        // プログラム詳細表示
+├── ProgramExecution.tsx      // プログラム実行インターフェース
+├── ProgramUpload.tsx         // 新規プログラムアップロード
+└── ExecutionHistory.tsx      // 過去の実行結果
+```
+
+#### 決済コンポーネント
+
+```typescript
+// components/payment/
+├── X402PaymentModal.tsx      // 決済処理
+├── PriceEstimator.tsx        // コスト計算
+├── PaymentHistory.tsx        // 取引履歴
+└── USDCTransfer.tsx          // Base USDC転送ロジック
+```
+
+## データモデルと型定義
+
+### ノード型定義
+
 ```typescript
 interface TEENode {
-  id: string
-  provider: string
-  location: string
-  latency: {
-    [exchange: string]: number // ms
-  }
+  id: string;
+  name: string;
+  description: string;
+  owner: string; // ウォレットアドレス
+  specifications: {
+    cpu: string;
+    memory: string;
+    storage: string;
+    teeType: 'SGX' | 'TrustZone' | 'SEV';
+  };
+  location: {
+    region: string;
+    city: string;
+    latency: number; // 主要取引所への遅延（ms）
+  };
   pricing: {
-    baseRate: number // USDC per hour
-    spotRate: number // USDC per execution
-  }
-  uptime: number // percentage
-  trustScore: number
-  capacity: {
-    current: number
-    max: number
-  }
+    perHour: number; // USDC時間単価
+    perExecution: number; // USDC実行単価
+  };
+  availability: {
+    status: 'online' | 'offline' | 'maintenance';
+    uptime: number; // 稼働率（％）
+    lastSeen: Date;
+  };
+  attestation: {
+    verified: boolean;
+    lastVerified: Date;
+    certificate: string; // モック証明書
+  };
+  reputation: {
+    rating: number; // 1-5星評価
+    totalJobs: number;
+    successRate: number;
+  };
 }
 ```
 
-### Transaction
+### プログラム型定義
+
 ```typescript
-interface Transaction {
-  id: string
-  userId: string
-  botId: string
-  nodeId: string
-  amount: number // USDC
-  duration: number // seconds
-  status: 'pending' | 'executing' | 'completed' | 'failed'
-  txHash: string // x402 transaction
-  executionResult?: any
-  attestation?: Attestation
+interface Program {
+  id: string;
+  name: string;
+  description: string;
+  author: string; // ウォレットアドレス
+  category: 'arbitrage' | 'dex' | 'lending' | 'mev' | 'other';
+  version: string;
+  pricing: {
+    basePrice: number; // 実行単価（USDC）
+    revenueShare: number; // 利益配分率（％）
+  };
+  requirements: {
+    minMemory: number;
+    estimatedRuntime: number; // 推定実行時間（秒）
+    supportedNodes: string[]; // サポートTEE種別
+  };
+  metadata: {
+    createdAt: Date;
+    updatedAt: Date;
+    totalExecutions: number;
+    averageRevenue: number;
+  };
+  code: {
+    hash: string; // コンテンツハッシュ
+    encrypted: boolean;
+    size: number; // バイト数
+  };
 }
 ```
 
-### Attestation
+### ジョブ・実行型定義
+
 ```typescript
-interface Attestation {
-  id: string
-  botId: string
-  nodeId: string
-  timestamp: number
-  executionHash: string
-  teeProof: string // Mock for now
-  performance: {
-    trades: number
-    profit: number
-    executionTime: number
-  }
+interface Job {
+  id: string;
+  programId: string;
+  nodeId: string;
+  user: string; // ウォレットアドレス
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  parameters: Record<string, any>;
+  execution: {
+    startTime: Date;
+    endTime?: Date;
+    runtime?: number; // 実行時間（秒）
+    logs?: string[];
+    result?: any;
+  };
+  payment: {
+    amount: number; // USDC
+    txHash: string; // Baseネットワーク取引ハッシュ
+    timestamp: Date;
+  };
+  attestation: {
+    verified: boolean;
+    proof: string; // モック証明
+  };
 }
 ```
 
-## x402 決済フロー詳細
+## モックデータ実装
 
-### 概要
-x402プロトコルを使用したBase上のUSDC決済フロー。HTTP 402ステータスコードを活用した、シンプルで透明性の高い支払いシステム。
+### モックデータソース
 
-### 決済フロー
-
-1. **支払い要求の生成**
-   - ユーザーが"Run Bot with TEE"ボタンをクリック
-   - フロントエンドが以下のデータを含む支払いリクエストを構築:
-     ```typescript
-     {
-       botId: string,
-       nodeId: string,
-       estimatedDuration: number, // seconds
-       pricePerExecution: number, // USDC
-       totalAmount: number, // USDC
-       recipientAddress: string, // Node provider's address
-       chainId: 8453, // Base
-       tokenAddress: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" // USDC on Base
-     }
-     ```
-
-2. **ウォレット接続確認**
-   - ウォレット未接続の場合: 接続モーダル表示
-   - 接続済みの場合: 残高確認
-   - 残高不足の場合: エラー表示
-
-3. **支払いトランザクション**
-   - wagmi/viemを使用してUSDC転送トランザクションを作成
-   - ユーザーのウォレット（MetaMask等）で承認
-   - トランザクション送信
-
-4. **支払い確認**
-   - トランザクションハッシュ取得
-   - ブロックチェーン上で確認待ち（スピナー表示）
-   - 確認完了後、実行フェーズへ移行
-
-5. **実行開始**
-   - 支払い証明（txHash）を含めてBot実行リクエスト
-   - Mock APIが実行状態をシミュレート
-   - リアルタイムログ表示
-
-### エラーハンドリング
-- **残高不足**: "Insufficient USDC balance"メッセージ
-- **トランザクション失敗**: "Transaction failed"と再試行ボタン
-- **ネットワークエラー**: "Network error"と自動リトライ
-
-### UI表示要素
-- 支払い前: 料金見積もり、必要USDC額
-- 支払い中: トランザクション承認待ち、確認待ちスピナー
-- 支払い後: トランザクションリンク、実行ステータス
-
-## UI/UXデザイン
-
-### デザインシステム
-- **カラーパレット**: ダークテーマベース（プロフェッショナルな取引環境）
-- **タイポグラフィ**: 数値の視認性を重視
-- **コンポーネント**: カード型UI、データビジュアライゼーション
-
-### 主要画面
-
-#### 1. Bot一覧画面 (`/`)
-**レイアウト**: グリッドレイアウト（3列×n行、レスポンシブ対応）
-
-**ヘッダーセクション**:
-- タイトル: "TEE-Verified Trading Bots"
-- サブタイトル: "全てのパフォーマンスはTEEで検証済み"
-- ウォレット接続ボタン（右上）
-
-
-**Botカードコンポーネント**:
-```
-┌─────────────────────────────┐
-│ [戦略タイプ]    [リスクレベル]│
-│                             │
-│ Bot Name                    │
-│ by 0x1234...5678           │
-│                             │
-│ ┌─────────┬────────────┐   │
-│ │ APR     │ 125.5%     │   │
-│ ├─────────┼────────────┤   │
-│ │ ROI     │ 45.2%      │   │
-│ ├─────────┼────────────┤   │
-│ │ Win Rate│ 78.5%      │   │
-│ └─────────┴────────────┘   │
-│                             │
-│ 🔐 TEE Verified ✓           │
-│ Min: 1,000 USDC            │
-│                             │
-│ [詳細を見る]                │
-└─────────────────────────────┘
+```typescript
+// lib/mockData/
+├── nodes.ts          // サンプルTEEノード
+├── programs.ts       // サンプルトレーディングプログラム
+├── jobs.ts           // 実行履歴
+└── users.ts          // ユーザープロファイル
 ```
 
-**表示データ（Botインターフェースより）**:
-- `name`, `createdBy`（短縮表示）
-- `performance.apy`, `performance.roi`, `performance.winRate`
-- `strategy`, `riskLevel`
-- `minInvestment`
-- TEE検証バッジ（attestationsが存在する場合）
+### モックサービス
 
-#### 2. Bot詳細・実行画面 (`/bot/[id]`)
-**レイアウト**: 2カラムレイアウト（左: Bot情報、右: 実行セクション）
+```typescript
+// lib/services/
+├── mockNodeService.ts     // ノードCRUD操作
+├── mockProgramService.ts  // プログラムマーケットプレース
+├── mockJobService.ts      // ジョブ実行シミュレーション
+├── mockPaymentService.ts  // X402/USDC転送シミュレーション
+└── mockTEEService.ts      // TEEアテステーションモック
+```
 
-**左カラム - Bot情報**:
-- Bot名、作成者、説明文
-- パフォーマンスチャート（ラインチャート、過去30日間）
-- 詳細統計:
-  - 総利益/損失
-  - 総取引回数  
-  - 平均保有時間
-  - 最大ドローダウン
-- TEEアテステーション履歴（タイムライン形式）:
-  ```
-  [timestamp] Node: Tokyo-1
-  実行時間: 120s | 取引: 45 | 利益: +234.5 USDC
-  [View Proof]
-  ```
+## 状態管理
 
-**右カラム - 実行セクション**:
-1. **Node選択エリア**:
-   - 推奨ノード表示（レイテンシベース）
-   - ノードリスト（カード形式）:
-     ```
-     ┌─────────────────────────┐
-     │ Singapore Hub           │
-     │ 📍 Singapore           │
-     │ ⚡ 4ms (Bybit)         │
-     │ 💰 0.013 USDC/exec     │
-     │ 📊 99.8% uptime        │
-     │ [選択]                  │
-     └─────────────────────────┘
-     ```
-   
-2. **料金見積もり**:
-   - 選択したNodeの料金
-   - 予想実行時間
-   - 合計費用（USDC）
+### React Context グローバル状態
 
-3. **実行ボタン**:
-   - "Run Bot with TEE" ボタン（大きく目立つ）
-   - 必要USDC残高チェック表示
+```typescript
+// contexts/
+├── WalletContext.tsx      // ウォレット接続状態
+├── NodesContext.tsx       // 利用可能ノード
+├── ProgramsContext.tsx    // プログラムマーケットプレース
+└── JobsContext.tsx        // ユーザージョブと履歴
+```
 
-**実行後の状態表示**:
-- プログレスバー付きモーダル
-- リアルタイム風のログ表示:
-  ```
-  [12:34:56] Initializing TEE environment...
-  [12:34:57] Loading bot strategy...
-  [12:34:58] Connecting to Bybit API...
-  [12:35:02] Executing trades...
-  [12:35:45] Generating attestation...
-  ```
-- 完了後: 結果サマリー、トランザクションリンク
+### React Hooks ローカル状態
 
-#### 3. 実行履歴画面（オプション）
-**レイアウト**: テーブル形式
+- `useState` コンポーネントレベル状態
+- `useEffect` データ取得・副作用処理
+- `useCallback` と `useMemo` パフォーマンス最適化
 
-**表示項目**:
-- 実行日時
-- Bot名
-- 使用Node
-- 実行時間
-- 取引数
-- 損益
-- ステータス
-- アテステーションリンク
+## API連携（モック実装）
+
+### モックAPIエンドポイント
+
+```typescript
+// setTimeout を使用したAPI呼び出しシミュレーション
+GET    /api/nodes              // 利用可能ノード一覧
+POST   /api/nodes              // 新規ノード登録
+GET    /api/nodes/:id          // ノード詳細
+PUT    /api/nodes/:id          // ノード更新
+
+GET    /api/programs           // プログラム一覧
+POST   /api/programs           // プログラムアップロード
+GET    /api/programs/:id       // プログラム詳細
+
+POST   /api/jobs               // 実行ジョブ作成
+GET    /api/jobs               // ユーザーのジョブ履歴
+GET    /api/jobs/:id           // ジョブ詳細
+
+POST   /api/payments           // 決済処理
+GET    /api/payments/history   // 決済履歴
+```
+
+## X402決済連携（モック）
+
+### Base ネットワーク USDC転送
+
+```typescript
+// Base USDC転送を使用したモックX402実装
+interface X402Payment {
+  from: string;        // ユーザーウォレット
+  to: string;          // ノードオーナーウォレット
+  amount: number;      // USDC金額
+  jobId: string;       // 関連ジョブ
+  timestamp: Date;
+}
+
+// 決済フロー:
+// 1. ユーザーのUSDC使用承認
+// 2. ノードオーナーにUSDC転送
+// 3. 取引ハッシュ記録
+// 4. ジョブ決済ステータス更新
+```
+
+### 決済モーダルフロー
+
+1. コスト見積もり表示
+2. ウォレット残高表示
+3. 必要に応じてUSDC承認要求
+4. 転送取引実行
+5. 決済完了確認
+6. ジョブ実行開始
+
+## TEEアテステーション（モック実装）
+
+### モックアテステーションサービス
+
+```typescript
+interface AttestationResult {
+  verified: boolean;
+  timestamp: Date;
+  nodeId: string;
+  jobId: string;
+  proof: string;        // モック暗号証明
+  measurements: {
+    codeHash: string;   // プログラム整合性
+    envHash: string;    // 環境整合性
+    inputHash: string;  // 入力パラメータハッシュ
+  };
+}
+
+// モック検証プロセス:
+// 1. ランダムなアテステーションデータ生成
+// 2. 検証遅延シミュレーション（2-5秒）
+// 3. モックルールに基づく成功・失敗返却
+// 4. UI上で検証ステータス表示
+```
+
+## レスポンシブデザイン要件
+
+### ブレークポイント（Tailwind CSS）
+
+- **モバイル**: 320px - 767px
+- **タブレット**: 768px - 1023px
+- **デスクトップ**: 1024px+
+
+### モバイル最適化
+
+- 折り畳み式ナビゲーション
+- タッチフレンドリーボタン（最小44px）
+- 簡素化されたノード・プログラムカード
+- 複雑なフォーム用モーダルダイアログ
+
+## パフォーマンス要件
+
+### Core Web Vitals ターゲット
+
+- **LCP** (Largest Contentful Paint): < 2.5秒
+- **FID** (First Input Delay): < 100ms
+- **CLS** (Cumulative Layout Shift): < 0.1
+
+### 最適化戦略
+
+- Next.js Image コンポーネントで画像最適化
+- 動的インポートによるコード分割
+- 大きなリストの遅延読み込み
+- 重い計算のメモ化
+
+## セキュリティ考慮事項
+
+### ウォレットセキュリティ
+
+- 秘密鍵の保存禁止
+- セキュアなウォレット接続ライブラリ使用
+- 全ウォレット署名の検証
+- 適切なCSRF保護実装
+
+### データ検証
+
+- 厳密なTypeScript型定義
+- 全フォーム入力値検証
+- ユーザー生成コンテンツのサニタイゼーション
+- API呼び出しレート制限（シミュレート）
+
+## 開発ワークフロー
+
+### コード品質
+
+- ESLint + Biome によるリンティング
+- TypeScript strict mode
+- フォーマットのプリコミットフック
+- Jest/RTL によるコンポーネントテスト
+
+### Git ワークフロー
+
+- フィーチャーブランチ
+- プルリクエストレビュー
+- Conventional Commits
+- Vercel 自動ビルド
+
+## デプロイ設定
+
+### 環境変数
+
+```bash
+NEXT_PUBLIC_BASE_CHAIN_ID=8453
+NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=xxx
+NEXT_PUBLIC_ALCHEMY_API_KEY=xxx # 必要に応じて
+NEXT_PUBLIC_APP_URL=https://tee-edge.vercel.app
+```
+
+### ビルド設定
+
+- 出力: 分散ホスティング用静的エクスポート
+- 画像最適化: 有効
+- バンドルアナライザー: プロダクションビルドで有効
+
+## テスト戦略
+
+### ユニットテスト
+
+- コンポーネントレンダリングテスト
+- Hook機能テスト
+- ユーティリティ関数テスト
+- モックサービステスト
+
+### 統合テスト
+
+- ウォレット接続フロー
+- 決済処理フロー
+- ジョブ実行フロー
+- ノード登録フロー
+
+### E2Eテスト（オプション）
+
+- 重要ユーザージャーニーでPlaywright使用
+- ウォレット接続シミュレーション
+- モック取引テスト
+
+## 将来の機能拡張
+
+### 実際の統合ポイント
+
+- 実際のTEEノード通信
+- 本格的なアテステーション検証
+- プロダクションX402プロトコル
+- バックエンドAPI統合
+- リアルタイム更新用WebSocket
+
+### 高度な機能
+
+- 多言語サポート
+- 高度な分析ダッシュボード
+- ノードパフォーマンス監視
+- 自動ジョブスケジューリング
+- 評価システム改善
