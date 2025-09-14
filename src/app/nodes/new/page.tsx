@@ -143,62 +143,20 @@ export default function RegisterNodePage() {
                         </div>
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <label className="text-sm font-medium">
-                            Price per Hour (USDC)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.50"
-                            className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">
-                            Price per Execution (USDC)
-                          </label>
-                          <input
-                            type="number"
-                            step="0.001"
-                            placeholder="0.05"
-                            className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
-                          />
-                        </div>
+                      <div>
+                        <label className="text-sm font-medium">
+                          Price per Hour (USDC)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.50"
+                          className="mt-1 w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                        />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="mt-6">
-                    <CardHeader>
-                      <CardTitle>TEE Attestation</CardTitle>
-                      <CardDescription>
-                        Verify your node's TEE capabilities
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium">
-                          Attestation Report
-                        </label>
-                        <div className="mt-2 border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                          <p className="text-sm text-muted-foreground">
-                            Upload your TEE attestation report or certificate
-                          </p>
-                          <Button variant="outline" className="mt-2">
-                            Choose File
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">Mock Verification</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          Attestation will be verified automatically
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
 
                   <div className="mt-6 flex gap-4">
                     <Button size="lg">Register Node</Button>
@@ -229,12 +187,6 @@ export default function RegisterNodePage() {
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 bg-green-500 rounded-full" />
                           <span className="text-sm">24/7 availability</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 bg-yellow-500 rounded-full" />
-                          <span className="text-sm">
-                            Valid attestation certificate
-                          </span>
                         </div>
                       </div>
                     </CardContent>

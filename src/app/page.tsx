@@ -145,44 +145,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="py-16">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Platform Statistics
-              </h2>
-            </div>
-            <div className="mx-auto mt-16 max-w-5xl">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 text-center">
-                <div>
-                  <div className="text-4xl font-bold text-primary">147</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Active Nodes
-                  </div>
-                </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary">23</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Programs
-                  </div>
-                </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary">1.2K</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Executions/Day
-                  </div>
-                </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary">99.9%</div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Uptime
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* CTA Section */}
         <section className="bg-primary py-16 text-primary-foreground">
