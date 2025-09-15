@@ -43,3 +43,6 @@ next-env.d.ts
 CLAUDE.local.md
 PROJECT.md
 SPEC.md
+
+# backend
+venv
